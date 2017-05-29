@@ -3,7 +3,6 @@ package com.july;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,10 +62,7 @@ public class SpringUtilsApplication {
 
 		ArrayList<Field> fields = new ArrayList<>();
 
-		Class<?> demoServiceClass = demoService.getClass();
-		if (AopUtils.isCglibProxy(demoService)) {
-			demoServiceClass = demoService.getClass().getSuperclass();
-		}
+		Class<?> demoServiceClass = ClassUtils.getUserClass(demoService);
 		ReflectionUtils.doWithFields(demoServiceClass, fields::add);
 
 		log.info("field  of demoService is {}", fields.toString());
@@ -92,16 +88,21 @@ public class SpringUtilsApplication {
 	}
 
 	private void classUtilsTest(DemoService demoService) {
+		Class<?> userClass = ClassUtils.getUserClass(demoService);
+		Assert.isTrue(userClass.equals(DemoService.class),"demoService's user class is DemoService");
+
 		Constructor<? extends DemoService> constructorIfAvailable = ClassUtils
 				.getConstructorIfAvailable(demoService.getClass());
+
 		Assert.notNull(constructorIfAvailable, "demoService no arg construct should not be null");
 		String s = ClassUtils.convertClassNameToResourcePath(DemoService.class.getName());
 		Assert.isTrue(s.equals("com/july/DemoService"), "demoService class resource path should be com/july/DemoService ");
 		Set<Class<?>> allInterfacesForClassAsSet = ClassUtils.getAllInterfacesForClassAsSet(DemoService.class);
 		log.info("allInterfacesForClassAsSet size is {}", allInterfacesForClassAsSet.size());
+//		ClassUtils.getMethod()
 	}
 
-	private void resovableTest(DemoService demoService) {
+	private void resolvableTest(DemoService demoService) {
 		Field myList = ReflectionUtils.findField(demoService.getClass(), "myList");
 		ResolvableType myListType = ResolvableType.forField(myList);
 		Assert.isTrue(myListType.hasGenerics(), "myList should has Generics");
@@ -112,22 +113,22 @@ public class SpringUtilsApplication {
 		Assert.isTrue(genericClass.equals(String.class), "myList generic class should be string");
 	}
 
+	private void servletRequestUtilsTest(RestTemplate restTemplate) {
+		restTemplate.getForEntity("http://localhost:8080/demo?name=july&age=25", Void.class);
+	}
+
 	@Bean
-	public CommandLineRunner test(DemoService demoService,RestTemplate restTemplate) {
+	public CommandLineRunner test(DemoService demoService, RestTemplate restTemplate) {
 		return args -> {
 			assertTest();
 			socketUtilsTest();
 			beanUtilsTest();
 			reflectionUtilsTest(demoService);
-			resovableTest(demoService);
+			resolvableTest(demoService);
 			aopUtilsTest(demoService);
 			classUtilsTest(demoService);
 			servletRequestUtilsTest(restTemplate);
 		};
-	}
-
-	private void servletRequestUtilsTest(RestTemplate restTemplate) {
-		restTemplate.getForEntity("http://localhost:8080/demo?name=july&age=25", Void.class);
 	}
 
 	@Bean
