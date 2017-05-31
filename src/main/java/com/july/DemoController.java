@@ -1,22 +1,18 @@
 package com.july;
 
-import com.sun.org.apache.regexp.internal.RE;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpRequest;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.springframework.web.util.WebUtils;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by haoyifen on 2017/5/29 16:21.

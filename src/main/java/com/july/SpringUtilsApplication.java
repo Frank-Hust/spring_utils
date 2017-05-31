@@ -1,8 +1,11 @@
 package com.july;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +19,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
+import org.springframework.util.Base64Utils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.RestTemplate;
@@ -89,7 +94,7 @@ public class SpringUtilsApplication {
 
 	private void classUtilsTest(DemoService demoService) {
 		Class<?> userClass = ClassUtils.getUserClass(demoService);
-		Assert.isTrue(userClass.equals(DemoService.class),"demoService's user class is DemoService");
+		Assert.isTrue(userClass.equals(DemoService.class), "demoService's user class is DemoService");
 
 		Constructor<? extends DemoService> constructorIfAvailable = ClassUtils
 				.getConstructorIfAvailable(demoService.getClass());
@@ -99,7 +104,7 @@ public class SpringUtilsApplication {
 		Assert.isTrue(s.equals("com/july/DemoService"), "demoService class resource path should be com/july/DemoService ");
 		Set<Class<?>> allInterfacesForClassAsSet = ClassUtils.getAllInterfacesForClassAsSet(DemoService.class);
 		log.info("allInterfacesForClassAsSet size is {}", allInterfacesForClassAsSet.size());
-//		ClassUtils.getMethod()
+		// ClassUtils.getMethod()
 	}
 
 	private void resolvableTest(DemoService demoService) {
@@ -117,6 +122,30 @@ public class SpringUtilsApplication {
 		restTemplate.getForEntity("http://localhost:8080/demo?name=july&age=25", Void.class);
 	}
 
+	private void digestUtilsTest() {
+		String s = DigestUtils.md5DigestAsHex("julysky".getBytes(StandardCharsets.UTF_8));
+		String md5 = "d52ceccd9a3341b720fa2baf9f06b8e3";
+		Assert.isTrue(s.equals(md5), "md5 hex of julysky should be " + md5);
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("julysky".getBytes(StandardCharsets.UTF_8));
+		String inputStreamHex;
+		try {
+			inputStreamHex = DigestUtils.md5DigestAsHex(byteArrayInputStream);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		Assert.isTrue(s.equals(inputStreamHex), "md5 hex of julysky's byte stream should be " + md5);
+	}
+
+	private void base64Test() {
+		String name = "julysky";
+		String s = Base64Utils.encodeToString(name.getBytes(StandardCharsets.UTF_8));
+		String nameEncoded = "anVseXNreQ==";
+		Assert.isTrue(s.equals(nameEncoded), "base64 of " + name + " should be " + nameEncoded);
+
+		String decodedName = new String(Base64Utils.decodeFromString(s), StandardCharsets.UTF_8);
+		Assert.isTrue(decodedName.equals(name),"decodedName should equals to name: "+name);
+	}
+
 	@Bean
 	public CommandLineRunner test(DemoService demoService, RestTemplate restTemplate) {
 		return args -> {
@@ -128,6 +157,8 @@ public class SpringUtilsApplication {
 			aopUtilsTest(demoService);
 			classUtilsTest(demoService);
 			servletRequestUtilsTest(restTemplate);
+			digestUtilsTest();
+			base64Test();
 		};
 	}
 
